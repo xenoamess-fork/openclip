@@ -64,7 +64,6 @@ demo/demo_skill.mov
 # Local development config
 AGENTS.md
 CLAUDE.md
-.trae/rules/
 .kiro/steering/
 .kiro/hooks/
 openclip-dev-config/
