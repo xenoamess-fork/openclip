@@ -47,7 +47,6 @@ test_output/
 test_final/
 debug_responses/
 archive/
-docs/dev/
 examples/
 tests/
 .claude/settings.json
