@@ -46,14 +46,25 @@ Prioritize insights on these topics (but don't limit yourself to them):
 ### Timestamp Rules (Critical)
 **MUST USE ACTUAL TIMESTAMPS FROM THE PROVIDED TRANSCRIPT**
 - Do not invent timestamps
-- `start_time`: Begin 1-2 sentences before the core claim to include natural context
+- `start_time`: See rules below depending on content format
 - `end_time`: End after the speaker fully completes the thought — never cut mid-sentence or mid-argument
 
+### How to Set start_time
+
+**Interview / conversation format** (there is a visible interviewer asking questions):
+- Set `start_time` to the beginning of the interviewer's question that prompted the insight
+- The question provides context that makes the clip self-contained — a viewer should not need to wonder why the speaker is saying what they're saying
+- If the question is very long (>30 seconds), start at the last question in the turn rather than the very beginning
+
+**Monologue / speech / solo format** (single speaker, no Q&A):
+- Begin 1-2 sentences before the core claim to include natural context
+
 ### How to Find Correct Timestamps
-1. Locate the exact transcript line where the core claim begins
-2. Go back 1-2 lines to capture natural setup
-3. Find where the speaker concludes the point (full stop in their reasoning)
-4. Verify both timestamps exist verbatim in the provided transcript
+1. Determine the format: is this a conversation with an interviewer, or a solo speaker?
+2. For interviews: locate where the interviewer begins the question that leads to this insight
+3. For monologues: go back 1-2 lines from the core claim to capture natural setup
+4. Find where the speaker concludes the point (full stop in their reasoning)
+5. Verify both timestamps exist verbatim in the provided transcript
 
 ### Quantity
 - Extract 3-8 insights per video segment

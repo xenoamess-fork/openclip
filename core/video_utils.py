@@ -559,9 +559,8 @@ async def find_existing_download(url: str,
             if not video_id:
                 raise Exception("Could not extract video ID from URL")
         
-        # Look for dedicated directory in downloads.
-        # VideoOrchestrator creates: output_dir/{safe_title}/downloads/{video_id}*/
-        # Fall back to flat: output_dir/downloads/{video_id}*/
+        # VideoOrchestrator creates: output_dir/{safe_title}/downloads/
+        # Files are named by title (yt-dlp default), not by video ID.
         video_dir = None
 
         VIDEO_EXTS = {'.mp4', '.mkv', '.webm', '.flv'}
@@ -573,7 +572,7 @@ async def find_existing_download(url: str,
                 return downloads_dir
             return None
 
-        # Primary: output_dir/{safe_title}/downloads/{video_id}*/
+        # Search one level deep: output_dir/{safe_title}/downloads/
         for subdir in output_dir.iterdir():
             if subdir.is_dir():
                 found = _find_in_downloads(subdir / "downloads")
@@ -581,7 +580,7 @@ async def find_existing_download(url: str,
                     video_dir = found
                     break
 
-        # Fallback: output_dir/downloads/{video_id}*/
+        # Fallback: output_dir/downloads/ (flat layout)
         if not video_dir:
             video_dir = _find_in_downloads(output_dir / "downloads")
 
