@@ -690,31 +690,6 @@ class ImprovedBilibiliDownloader:
         return None
 
 
-class DownloadProcessor:
-    """Handles video downloading operations"""
-    
-    def __init__(self, downloader):
-        self.downloader = downloader
-    
-    async def download_video(self, 
-                           url: str, 
-                           custom_filename: Optional[str],
-                           progress_callback: Optional[Callable[[str, float], None]]) -> Dict[str, Any]:
-        """Download video and subtitles with progress tracking"""
-        
-        # Create progress callback for download phase
-        from core.video_utils import ProgressCallbackManager
-        download_progress = ProgressCallbackManager.create_download_progress_callback(
-            progress_callback, 0, 25
-        )
-        
-        return await self.downloader.download_video(
-            url, 
-            custom_filename, 
-            download_progress
-        )
-
-
 async def main():
     """Main async function for command-line interface"""
     parser = argparse.ArgumentParser(
