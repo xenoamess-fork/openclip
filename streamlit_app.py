@@ -200,13 +200,13 @@ TRANSLATIONS = {
         'subtitle_translation_help': '将字幕翻译为该语言并烧录双语字幕。选择"无"则仅烧录原语言字幕。',
         'subtitle_translation_none': '无',
         'generate_cover_help': '为视频生成封面图像',
-        'use_background_help': '使用 prompts/background/background.md 中的背景信息',
+        'use_background_help': '������ prompts/background/background.md 中的背景信息',
         'use_custom_prompt_help': '使用自定义提示进行高光分析',
         'advanced_config_notice': '如需调整高级选项（如视频分割时长、Whisper 模型），请编辑 `core/config.py`。',
         'speaker_references': '说话人参考音频目录（预览版）',
         'speaker_references_help': '包含参考音频片段的目录，用于说话人姓名映射。文件名即说话人姓名（如 references/Host.wav → "Host"）。需要设置 HUGGINGFACE_TOKEN 环境变量。',
-        'speaker_references_unavailable': '说话人识���（预览版）— 需要额外依赖：`uv sync --extra speakers`',
-        'speaker_references_dir_not_found': '⚠️ 目录不存在，��检查���径。',
+        'speaker_references_unavailable': '说话人识别（预览版）— 需要额外依赖：`uv sync --extra speakers`',
+        'speaker_references_dir_not_found': '⚠️ 目录不存在，请检查路径。',
         'speaker_references_token_warning': '⚠️ 未设置 HUGGINGFACE_TOKEN，运行时说话人识别将失败。',
     }
 }
@@ -615,25 +615,6 @@ with st.sidebar:
     )
     data['output_dir'] = output_dir
 
-    # Speaker Identification (Preview)
-    if not WHISPERX_AVAILABLE:
-        st.info(t['speaker_references_unavailable'])
-        speaker_references_dir = ""
-    else:
-        speaker_references_dir = st.text_input(
-            t['speaker_references'],
-            value=data.get('speaker_references_dir', ''),
-            help=t['speaker_references_help'],
-            placeholder="references/",
-            key=f"speaker_references_dir_{st.session_state.reset_counter}",
-        )
-        if speaker_references_dir:
-            if not Path(speaker_references_dir).is_dir():
-                st.caption(t['speaker_references_dir_not_found'])
-            elif not os.getenv('HUGGINGFACE_TOKEN'):
-                st.caption(t['speaker_references_token_warning'])
-    data['speaker_references_dir'] = speaker_references_dir
-
     # Checkboxes for additional options
     generate_cover = st.checkbox(
         t['generate_cover'],
@@ -711,6 +692,25 @@ with st.sidebar:
         # Initialize custom_prompt_text if not present
         if 'custom_prompt_text' not in data:
             data['custom_prompt_text'] = ""
+
+        # Speaker Identification (Preview)
+        if not WHISPERX_AVAILABLE:
+            st.info(t['speaker_references_unavailable'])
+            speaker_references_dir = ""
+        else:
+            speaker_references_dir = st.text_input(
+                t['speaker_references'],
+                value=data.get('speaker_references_dir', ''),
+                help=t['speaker_references_help'],
+                placeholder="references/",
+                key=f"speaker_references_dir_{st.session_state.reset_counter}",
+            )
+            if speaker_references_dir:
+                if not Path(speaker_references_dir).is_dir():
+                    st.caption(t['speaker_references_dir_not_found'])
+                elif not os.getenv('HUGGINGFACE_TOKEN'):
+                    st.caption(t['speaker_references_token_warning'])
+        data['speaker_references_dir'] = speaker_references_dir
 
         st.caption(t['advanced_config_notice'])
 
