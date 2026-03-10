@@ -194,6 +194,8 @@ uv run python video_orchestrator.py "/path/to/video.mp4"
 <summary>🎙️ Speaker Identification (Optional, Preview)</summary>
 
 > ⚠️ **Preview feature**: Speaker identification is in preview. Behavior and interface may change in future releases.
+>
+> 🐢 **Performance note**: Speaker diarization relies on pyannote models and can be slow on CPU (may take several minutes for longer videos). A GPU environment will significantly speed this up.
 
 For interviews, panels, debates, podcasts, and any multi-speaker video. When enabled, each line in the transcript is prefixed with the speaker's name, e.g. `[Host] Welcome to today's show`. This gives the AI richer context during highlight analysis — making it better at identifying the most engaging exchanges between specific speakers, rather than treating all speech as undifferentiated.
 

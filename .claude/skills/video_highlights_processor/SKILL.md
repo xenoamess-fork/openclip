@@ -102,9 +102,10 @@ Use `--skip-clips`, `--skip-cover` to skip specific steps. Use `--add-titles` to
 
 ```
 processed_videos/{video_name}/
-├── downloads/              # Original video, subtitles, and metadata
+├── downloads/              # Original video, subtitles, and metadata (URL sources)
+├── local_videos/           # Copied video and subtitles (local file sources)
 ├── splits/                 # Split parts and AI analysis results
-├── clips/                  # Generated highlight clips + generated cover images
+├── clips/                  # Generated highlight clips + cover images
 └── clips_post_processed/   # Post-processed clips when using --add-titles and/or --burn-subtitles
 ```
 
