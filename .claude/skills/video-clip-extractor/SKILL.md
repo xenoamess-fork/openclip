@@ -1,18 +1,43 @@
 ---
-name: "video_highlights_processor"
+name: "video-clip-extractor"
 description: "Processes videos to identify engaging moments, generate transcripts, and create highlight clips with artistic titles and custom cover images. Use when user needs to: extract highlights from long videos or livestreams, clip or cut best moments from videos, process Bilibili/YouTube URLs or local video files, generate transcripts via Whisper, analyze content for engaging moments, create short-form clips with styled titles and covers, adjust cover text position and colors, find and export memorable scenes from recordings, burn subtitles into clips (with optional translation), guide clip selection with user intent, or identify speakers in multi-person conversations."
+allowed-tools: Bash(uv run python video_orchestrator.py*), Bash(git clone*), Bash(git -C*openclip*), Bash(cd ~/.local/share/openclip*)
 ---
 
-# Video Highlights Processor Skill
+# Video Clip Extractor Skill
 
 Run the video orchestrator to process videos and extract engaging highlights.
 
-## Execution
+## Setup (first use only)
 
-Run from the project root using `uv` (the project uses `uv` with `pyproject.toml` and `uv.lock`):
+Before running, determine the execution context:
+
+1. **Inside openclip repo** — if `video_orchestrator.py` exists in the current directory, skip setup and run directly.
+2. **Global install** — if `~/.local/share/openclip` does not exist, run these steps:
+
+**Prerequisites:** `git` and `uv` must be installed.
+- Install uv if missing: `curl -LsSf https://astral.sh/uv/install.sh | sh`
 
 ```bash
+git clone https://github.com/linzzzzzz/openclip.git ~/.local/share/openclip
+cd ~/.local/share/openclip && uv sync
+```
+
+To update openclip later:
+```bash
+git -C ~/.local/share/openclip pull && cd ~/.local/share/openclip && uv sync
+```
+
+## Execution
+
+**If inside the openclip repo** (current directory contains `video_orchestrator.py`):
+```bash
 uv run python video_orchestrator.py [options] <source>
+```
+
+**If running globally** (from any other directory):
+```bash
+cd ~/.local/share/openclip && uv run python video_orchestrator.py [options] <source>
 ```
 
 Where `<source>` is a video URL (Bilibili/YouTube) or local file path (MP4, WebM, AVI, MOV, MKV).
