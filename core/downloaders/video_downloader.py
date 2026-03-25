@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Dict, Optional, Callable, Any
 
 from .bilibili_downloader import ImprovedBilibiliDownloader
+from .download_error_utils import enrich_download_error_message
 from .youtube_downloader import YouTubeDownloader
 
 # Set up logging
@@ -64,6 +65,21 @@ class VideoDownloader:
             cookies=cookies,
             js_runtime=js_runtime,
             js_runtime_path=js_runtime_path,
+        )
+
+    def build_user_facing_error_message(self, source: str, error_text: str) -> str:
+        """Build a user-facing error message with platform-specific guidance."""
+        platform = self.detect_platform(source)
+        youtube_downloader = getattr(self, 'youtube_downloader', None)
+        has_cookie_auth = bool(
+            getattr(youtube_downloader, 'cookies', None) or
+            getattr(youtube_downloader, 'browser', None)
+        )
+        return enrich_download_error_message(
+            source=source,
+            error_text=error_text,
+            platform=platform,
+            has_cookie_auth=has_cookie_auth,
         )
     
     def detect_platform(self, url: str) -> str:
@@ -173,8 +189,13 @@ class DownloadProcessor:
             progress_callback, 0, 25
         )
         
-        return await self.downloader.download_video(
-            url, 
-            custom_filename, 
-            download_progress
-        )
+        try:
+            return await self.downloader.download_video(
+                url,
+                custom_filename,
+                download_progress
+            )
+        except Exception as e:
+            raise RuntimeError(
+                self.downloader.build_user_facing_error_message(url, str(e))
+            ) from e

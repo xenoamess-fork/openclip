@@ -215,7 +215,7 @@ class VideoOrchestrator:
         logger.info(f"🎬 Video Orchestrator initialized")
         logger.info(f"📁 Output directory: {self.output_dir}")
         logger.info(f"🤖 Whisper model: {whisper_model}")
-    
+
     async def process_video(self,
                           source: str,
                           force_whisper: bool = False,
@@ -570,8 +570,11 @@ class VideoOrchestrator:
                             custom_filename: Optional[str],
                             progress_callback: Optional[Callable[[str, float], None]]) -> dict:
         """Download video and subtitles using download processor"""
-        # Get video info first to determine video name
-        video_info = await self.downloader.get_video_info(url)
+        try:
+            # Get video info first to determine video name
+            video_info = await self.downloader.get_video_info(url)
+        except Exception as e:
+            raise RuntimeError(self.downloader.build_user_facing_error_message(url, str(e))) from e
         
         # Create video-specific directory structure
         video_name = video_info.get('title', 'video')

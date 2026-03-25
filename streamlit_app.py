@@ -48,6 +48,14 @@ TRANSLATIONS = {
         'title_style': 'Title Style',
         'language': 'Output Language',
         'output_dir': 'Output Directory',
+        'cookie_settings': 'Cookie Settings',
+        'cookie_mode': 'Cookie Mode',
+        'cookie_mode_help': 'Choose how OpenClip should authenticate when downloading from Bilibili or YouTube.',
+        'cookie_mode_browser': 'Browser cookies',
+        'cookie_mode_file': 'Cookies file',
+        'cookie_mode_none': 'No cookies',
+        'cookie_browser': 'Cookie Browser',
+        'cookie_browser_help': 'Use cookies extracted from this browser for remote video downloads.',
         'cookies_file': 'Cookies File Path (optional)',
         'use_background': 'Use Background Info',
         'user_intent': 'What are you looking for? (optional)',
@@ -136,6 +144,14 @@ TRANSLATIONS = {
         'title_style': '标题风格',
         'language': '输出语言',
         'output_dir': '输出目录',
+        'cookie_settings': 'Cookie 设置',
+        'cookie_mode': 'Cookie 模式',
+        'cookie_mode_help': '选择 OpenClip 下载 Bilibili 或 YouTube 时如何进行身份验证。',
+        'cookie_mode_browser': '浏览器 cookies',
+        'cookie_mode_file': 'Cookies 文件',
+        'cookie_mode_none': '不使用 cookies',
+        'cookie_browser': 'Cookie 浏览器',
+        'cookie_browser_help': '使用此浏览器中的 cookies 下载远程视频。',
         'cookies_file': 'Cookies 文件路径（可选）',
         'use_background': '使用背景信息提示词',
         'user_intent': '你想找什么？（可选）',
@@ -235,6 +251,8 @@ DEFAULT_DATA = {
     'title_style': DEFAULT_TITLE_STYLE,
     'language': "zh",
     'output_dir': "processed_videos",
+    'cookie_mode': "none",
+    'cookie_browser': "chrome",
     'cookies_file': "",
     'custom_prompt_file': None,
     'custom_prompt_text': "",
@@ -543,6 +561,52 @@ with st.sidebar:
         )
         st.caption(t['local_file_srt_notice'])
         data['video_source'] = video_source
+
+    cookie_mode = data.get('cookie_mode', 'none')
+    cookie_browser = data.get('cookie_browser', 'chrome')
+    cookies_file = ""
+
+    with st.expander(t['cookie_settings'], expanded=False):
+        cookie_mode_options = [t['cookie_mode_none'], t['cookie_mode_browser'], t['cookie_mode_file']]
+        cookie_mode_values = ['none', 'browser', 'file']
+        current_cookie_mode_idx = cookie_mode_values.index(cookie_mode) if cookie_mode in cookie_mode_values else 0
+        cookie_mode_label = st.selectbox(
+            t['cookie_mode'],
+            options=cookie_mode_options,
+            index=current_cookie_mode_idx,
+            help=t['cookie_mode_help'],
+            key=f"cookie_mode_{st.session_state.reset_counter}",
+        )
+        cookie_mode = cookie_mode_values[cookie_mode_options.index(cookie_mode_label)]
+        data['cookie_mode'] = cookie_mode
+
+        if cookie_mode == 'browser':
+            browser_options = ['chrome', 'firefox', 'edge', 'safari']
+            current_browser_idx = browser_options.index(cookie_browser) if cookie_browser in browser_options else 0
+            cookie_browser = st.selectbox(
+                t['cookie_browser'],
+                options=browser_options,
+                index=current_browser_idx,
+                help=t['cookie_browser_help'],
+                key=f"cookie_browser_{st.session_state.reset_counter}",
+            )
+            data['cookie_browser'] = cookie_browser
+            data['cookies_file'] = ""
+            cookies_file = ""
+        elif cookie_mode == 'file':
+            cookies_file = st.text_input(
+                t['cookies_file'],
+                value=data.get('cookies_file', ''),
+                help=t['cookies_file_help'],
+                placeholder="cookies.txt",
+                key=f"cookies_file_{st.session_state.reset_counter}"
+            )
+            data['cookies_file'] = cookies_file
+            if cookies_file and not Path(cookies_file).is_file():
+                st.caption("⚠️ Cookies file not found. Download will fail until this path is corrected.")
+        else:
+            data['cookies_file'] = ""
+            cookies_file = ""
     
     # LLM provider selection
     llm_provider = st.selectbox(
@@ -623,8 +687,6 @@ with st.sidebar:
     )
     data['output_dir'] = output_dir
 
-    cookies_file = ""
-
     # Checkboxes for additional options
     generate_cover = st.checkbox(
         t['generate_cover'],
@@ -683,17 +745,6 @@ with st.sidebar:
         st.info(t['background_info_notice'])
     
     with st.expander(t['advanced_options']):
-        cookies_file = st.text_input(
-            t['cookies_file'],
-            value=data.get('cookies_file', ''),
-            help=t['cookies_file_help'],
-            placeholder="cookies.txt",
-            key=f"cookies_file_{st.session_state.reset_counter}"
-        )
-        data['cookies_file'] = cookies_file
-        if cookies_file and not Path(cookies_file).is_file():
-            st.caption("⚠️ Cookies file not found. Download will fail until this path is corrected.")
-
         force_whisper = st.checkbox(
             t['force_whisper'],
             value=data['force_whisper'],
@@ -997,7 +1048,7 @@ def process_video_worker(job, progress_callback):
         output_dir=options['output_dir'],
         max_duration_minutes=options['max_duration_minutes'],
         whisper_model=options['whisper_model'],
-        browser=options.get('browser', 'firefox'),
+        browser=options.get('browser'),
         cookies=options.get('cookies_file') or None,
         api_key=options['api_key'],
         llm_provider=options['llm_provider'],
@@ -1058,7 +1109,7 @@ if process_clicked:
             'output_dir': output_dir,
             'max_duration_minutes': MAX_DURATION_MINUTES,
             'whisper_model': WHISPER_MODEL,
-            'browser': 'firefox',
+            'browser': cookie_browser if cookie_mode == 'browser' else None,
             'api_key': resolved_api_key,
             'llm_provider': llm_provider,
             'generate_clips': generate_clips,
@@ -1070,7 +1121,8 @@ if process_clicked:
             'custom_prompt_file': custom_prompt_file,
             'max_clips': max_clips,
             'force_whisper': force_whisper,
-            'cookies_file': cookies_file or None,
+            'cookie_mode': cookie_mode,
+            'cookies_file': (cookies_file or None) if cookie_mode == 'file' else None,
             'speaker_references_dir': speaker_references_dir or None,
             'burn_subtitles': burn_subtitles,
             'subtitle_translation': subtitle_translation or None,

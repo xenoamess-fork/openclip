@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Improved Bilibili Video Downloader using yt-dlp
-Combines automatic browser cookie extraction with advanced subtitle strategies
+Uses explicit cookie selection with advanced subtitle strategies
 """
 
 import os
@@ -54,10 +54,10 @@ class BilibiliVideoInfo:
 
 class ImprovedBilibiliDownloader:
     """
-    Improved Bilibili video downloader with automatic cookie handling and advanced subtitle strategies
+    Improved Bilibili video downloader with explicit cookie handling and advanced subtitle strategies
     """
     
-    def __init__(self, output_dir: str = "downloads", quality: str = "best", browser: Optional[str] = "chrome", cookies: Optional[str] = None):
+    def __init__(self, output_dir: str = "downloads", quality: str = "best", browser: Optional[str] = None, cookies: Optional[str] = None):
         """
         Initialize the improved Bilibili downloader
         
@@ -193,14 +193,6 @@ class ImprovedBilibiliDownloader:
                 'Referer': 'https://www.bilibili.com/',
             }
     
-    def _get_browser_headers_for(self, browser: str) -> Dict[str, str]:
-        """Get headers for a specific browser (used when falling back to a different browser)"""
-        original = self.browser
-        self.browser = browser
-        headers = self._get_browser_headers()
-        self.browser = original
-        return headers
-
     def validate_url(self, url: str) -> bool:
         """Validate if URL is a valid Bilibili URL"""
         bilibili_patterns = [
@@ -268,7 +260,6 @@ class ImprovedBilibiliDownloader:
         strategies = [
             self._get_info_with_cookies,
             self._get_info_without_cookies,
-            self._get_info_with_different_browser
         ]
         
         for i, strategy in enumerate(strategies):
@@ -312,31 +303,6 @@ class ImprovedBilibiliDownloader:
         
         loop = asyncio.get_event_loop()
         return await loop.run_in_executor(None, self._extract_info_sync, url, info_opts)
-    
-    async def _get_info_with_different_browser(self, url: str) -> Dict[str, Any]:
-        """Get video info with different browser cookies"""
-        if self.cookies:
-            raise Exception("Explicit cookie file already configured")
-
-        browsers = ['firefox', 'edge', 'safari'] if self.browser == 'chrome' else ['chrome']
-        
-        for browser in browsers:
-            try:
-                info_opts = self.base_opts.copy()
-                info_opts.update({
-                    'quiet': True,
-                    'no_warnings': True,
-                    **self._get_cookie_opts(browser),
-                    'http_headers': self._get_browser_headers_for(browser),
-                })
-                
-                loop = asyncio.get_event_loop()
-                return await loop.run_in_executor(None, self._extract_info_sync, url, info_opts)
-            except Exception as e:
-                logger.debug(f"Browser {browser} failed: {e}")
-                continue
-        
-        raise Exception("All browser cookie strategies failed")
     
     def _extract_info_sync(self, url: str, ydl_opts: Dict[str, Any]) -> Dict[str, Any]:
         """Synchronously extract video information"""
@@ -723,14 +689,14 @@ class ImprovedBilibiliDownloader:
 async def main():
     """Main async function for command-line interface"""
     parser = argparse.ArgumentParser(
-        description="Improved Bilibili Video Downloader with automatic cookie handling",
+        description="Improved Bilibili Video Downloader with explicit cookie handling",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  # Download with automatic cookie extraction (no manual browser interaction)
+  # Download without cookies
   python bilibili_downloader_improved.py "https://www.bilibili.com/video/BV1234567890"
   
-  # Use Firefox cookies instead of Chrome
+  # Use Firefox browser cookies explicitly
   python bilibili_downloader_improved.py --browser firefox "https://www.bilibili.com/video/BV1234567890"
   
   # Download with specific quality
@@ -746,9 +712,9 @@ Examples:
                        help='Output directory (default: downloads)')
     parser.add_argument('-q', '--quality', default='best',
                        help='Video quality (best, worst, 720p, 480p, etc.)')
-    parser.add_argument('-b', '--browser', default='firefox',
+    parser.add_argument('-b', '--browser',
                        choices=['chrome', 'firefox', 'edge', 'safari'],
-                       help='Browser to extract cookies from (default: firefox)')
+                       help='Browser to extract cookies from when explicitly provided')
     parser.add_argument('-f', '--filename',
                        help='Custom filename template')
     parser.add_argument('-i', '--info', action='store_true',
